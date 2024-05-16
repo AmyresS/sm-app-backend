@@ -28,6 +28,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.8",
     "@prisma/client": "^5.14.0",
+    "@types/cookie-parser": "^1.4.7",
     "@types/validator": "^13.11.10",
     "argon2": "^0.40.1",
     "class-transformer": "^0.5.1",

@@ -17,8 +17,8 @@ export class ChatGateway
     console.log('websocket init');
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
-    console.log(client.handshake.headers.authorization);
+  handleConnection(client: Socket) {
+    console.log(client);
   }
 
   handleDisconnect(client: Socket) {}

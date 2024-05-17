@@ -1,6 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { UserDto } from './dto/user.dto';
 
 @Controller('user')
 export class UserController {
@@ -8,7 +9,7 @@ export class UserController {
 
   @Get(':id')
   @Auth()
-  async findById(@Param('id') id: string) {
-    return this.userService.getById(id);
+  async findById(@Param('id') id: string): Promise<UserDto> {
+    return new UserDto(await this.userService.getById(id));
   }
 }

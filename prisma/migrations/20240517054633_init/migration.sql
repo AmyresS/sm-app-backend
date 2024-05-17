@@ -17,6 +17,7 @@ CREATE TABLE "chats" (
     "title" VARCHAR NOT NULL,
     "avatar" VARCHAR,
     "description" VARCHAR,
+    "private" BOOLEAN NOT NULL,
 
     CONSTRAINT "chats_pkey" PRIMARY KEY ("id")
 );

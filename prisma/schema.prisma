@@ -33,6 +33,7 @@ model Chat {
   title       String    @db.VarChar
   avatar      String?   @db.VarChar
   description String?   @db.VarChar
+  private     Boolean   @db.Boolean
 
   recipients  ChatRecipient[]
   messages    Message[]

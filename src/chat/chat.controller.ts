@@ -4,6 +4,7 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ChatDto } from './dto/chat.dto';
+import { MessageDto } from './dto/message.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -28,5 +29,14 @@ export class ChatController {
     @CurrentUser('id') userId: string,
   ) {
     return await this.chatService.createChat(dto, userId);
+  }
+
+  @Get(':id/message')
+  @Auth()
+  async getChatMessages(
+    @CurrentUser('id') userId: string,
+    @Param('id') chatId: string,
+  ): Promise<MessageDto[]> {
+    return await this.chatService.getChatMessages(userId, chatId);
   }
 }

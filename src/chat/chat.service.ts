@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatDto } from './dto/chat.dto';
+import { MessageDto } from './dto/message.dto';
 
 interface ChatRecipient {
   userId: string;
@@ -63,5 +68,18 @@ export class ChatService {
     });
 
     return chat;
+  }
+
+  async getChatMessages(userId: string, chatId: string): Promise<MessageDto[]> {
+    const chat = await this.prisma.chatRecipient.findFirst({
+      where: { AND: [{ userId }, { chatId }] },
+    });
+    if (!chat) throw new NotFoundException('no chat found where you present');
+
+    const messages = await this.prisma.message.findMany({
+      where: { chatId: chat.chatId },
+    });
+
+    return messages.map<MessageDto>((message) => new MessageDto(message));
   }
 }

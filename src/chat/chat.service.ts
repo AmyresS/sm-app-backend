@@ -17,8 +17,17 @@ interface ChatRecipient {
 export class ChatService {
   constructor(private prisma: PrismaService) {}
 
+  private async getLastMessage(chatId: string): Promise<MessageDto> {
+    const message = await this.prisma.message.findFirst({
+      where: { chatId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return message ? new MessageDto(message) : null;
+  }
+
   async findMyChats(userId: string): Promise<ChatDto[]> {
-    const chats = await this.prisma.chatRecipient.findMany({
+    const _chats = await this.prisma.chatRecipient.findMany({
       where: { userId },
       include: {
         chat: {
@@ -29,7 +38,12 @@ export class ChatService {
       },
     });
 
-    return chats.map<ChatDto>((chat) => new ChatDto(chat.chat));
+    const chats = _chats.map<ChatDto>((chat) => new ChatDto(chat.chat));
+    // resolve last messages
+    for (const chat of chats) {
+      chat.withLastMessage(await this.getLastMessage(chat.id));
+    }
+    return chats;
   }
 
   async findById(id: string): Promise<ChatDto> {

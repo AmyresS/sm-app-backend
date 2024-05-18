@@ -1,3 +1,5 @@
+import { MessageDto } from './message.dto';
+
 export class ChatDto {
   public id: string;
   public title: string;
@@ -6,6 +8,7 @@ export class ChatDto {
   public private: boolean;
 
   public recipients: string[];
+  public lastMessage: MessageDto | null;
 
   constructor(chat: any) {
     this.id = chat.id;
@@ -15,5 +18,10 @@ export class ChatDto {
     this.private = chat.private;
 
     this.recipients = chat.recipients.map((r) => r.userId);
+  }
+
+  public withLastMessage(lastMessage: MessageDto): ChatDto {
+    this.lastMessage = lastMessage;
+    return this;
   }
 }

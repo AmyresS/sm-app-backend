@@ -10,7 +10,8 @@ import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway()
 export class ChatGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() io: Server;
 
   afterInit(server: Server) {

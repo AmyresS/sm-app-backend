@@ -14,12 +14,61 @@ datasource db {
 }
 
 model User {
-  id  String @id @default(cuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  email String @unique
-  password String
-  name String?
+  id          String    @id @db.VarChar @default(cuid())
+  email       String    @db.VarChar @unique
+  password    String    @db.VarChar
+  name        String?   @db.VarChar
+  avatar      String?   @db.VarChar
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  chats       ChatRecipient[]
+  messages    Message[]
 
   @@map("users")
+}
+
+model Chat {
+  id          String    @id @db.VarChar @default(cuid())
+  title       String    @db.VarChar
+  avatar      String?   @db.VarChar
+  description String?   @db.VarChar
+  private     Boolean   @db.Boolean
+
+  recipients  ChatRecipient[]
+  messages    Message[]
+
+  @@map("chats")
+}
+
+model ChatRecipient {
+  chatId      String    @db.VarChar
+  chat        Chat      @relation(fields: [chatId], references: [id])
+  @@index([chatId], type: Hash)
+
+  userId      String    @db.VarChar
+  user        User      @relation(fields: [userId], references: [id])
+  @@index([userId], type: Hash)
+
+  @@id([chatId, userId])
+  @@map("chat_recipients")
+}
+
+model Message {
+  id          String    @id @db.VarChar @default(cuid())
+  
+  chatId      String    @db.VarChar
+  chat        Chat      @relation(fields: [chatId], references: [id])
+  @@index([chatId], type: Hash)
+
+  userId      String    @db.VarChar
+  user        User      @relation(fields: [userId], references: [id])
+  @@index([userId], type: Hash)
+
+  message     String
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("messages")
 }

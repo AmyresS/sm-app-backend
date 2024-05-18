@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { ChatDto } from './dto/chat.dto';
 
 interface ChatRecipient {
   userId: string;
@@ -9,6 +10,32 @@ interface ChatRecipient {
 @Injectable()
 export class ChatService {
   constructor(private prisma: PrismaService) {}
+
+  async findMyChats(userId: string): Promise<ChatDto[]> {
+    const chats = await this.prisma.chatRecipient.findMany({
+      where: { userId },
+      include: {
+        chat: {
+          include: {
+            recipients: true,
+          },
+        },
+      },
+    });
+
+    return chats.map<ChatDto>((chat) => new ChatDto(chat.chat));
+  }
+
+  async findById(id: string): Promise<ChatDto> {
+    const chat = await this.prisma.chat.findUnique({
+      where: { id },
+      include: {
+        recipients: true,
+      },
+    });
+
+    return new ChatDto(chat);
+  }
 
   async createChat(dto: CreateChatDto, userId: string) {
     const ids = [...new Set(dto.recipients.concat(userId))];

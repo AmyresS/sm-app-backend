@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatDto } from './dto/chat.dto';
 import { MessageDto } from './dto/message.dto';
+import { PostMessageDto } from './dto/post-message.dto';
 
 interface ChatRecipient {
   userId: string;
@@ -70,16 +71,42 @@ export class ChatService {
     return chat;
   }
 
-  async getChatMessages(userId: string, chatId: string): Promise<MessageDto[]> {
+  private async getChat(userId: string, chatId: string): Promise<any> {
     const chat = await this.prisma.chatRecipient.findFirst({
       where: { AND: [{ userId }, { chatId }] },
     });
     if (!chat) throw new NotFoundException('no chat found where you present');
 
+    return chat;
+  }
+
+  async getChatMessages(userId: string, chatId: string): Promise<MessageDto[]> {
+    const chat = await this.getChat(userId, chatId);
     const messages = await this.prisma.message.findMany({
       where: { chatId: chat.chatId },
     });
 
     return messages.map<MessageDto>((message) => new MessageDto(message));
+  }
+
+  async postMessage(
+    userId: string,
+    chatId: string,
+    dto: PostMessageDto,
+  ): Promise<MessageDto> {
+    const chat = await this.getChat(userId, chatId);
+    const message = await this.prisma.message.create({
+      data: {
+        user: {
+          connect: { id: userId },
+        },
+        chat: {
+          connect: { id: chat.chatId },
+        },
+        message: dto.message,
+      },
+    });
+
+    return new MessageDto(message);
   }
 }

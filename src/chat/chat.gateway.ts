@@ -1,21 +1,22 @@
 import {
   OnGatewayInit,
-  OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  ConnectedSocket,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { verify } from 'jsonwebtoken';
+// import { verify } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { Logger } from '@nestjs/common';
+import { WebSocketAuth } from './decorators/websocket-auth.decorator';
+import { WebSocketUser } from './decorators/websocket-user.decorator';
 
 @WebSocketGateway({ cors: true })
-export class ChatGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
@@ -31,62 +32,16 @@ export class ChatGateway
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleConnection(client: Socket, ...args: any[]): any {
-    const authorization = client.handshake?.headers?.authorization;
-    if (!authorization) {
-      this.logger.warn('no client authorization');
-      client.disconnect();
-      return;
-    }
-
-    const match = authorization.match(/Bearer\s(.+)$/);
-    if (!match) {
-      this.logger.warn('bearer regex doesnt match');
-      client.disconnect();
-      return;
-    }
-
-    const accessToken = match[1];
-    if (!accessToken) {
-      this.logger.warn('no access token');
-      client.disconnect();
-      return;
-    }
-
-    try {
-      const payload = verify(
-        accessToken,
-        this.configService.get('JWT_SECRET'),
-        {
-          ignoreExpiration: true,
-        },
-      );
-      const userId = payload['id'];
-      if (!userId) {
-        this.logger.warn('no user id in jwt payload');
-        client.disconnect();
-        return;
-      }
-
-      const user = this.userService.getById(userId);
-      if (!user) {
-        this.logger.warn('user not found');
-        client.disconnect();
-        return;
-      }
-
-      this.logger.log(`authorized ${userId} user websocket`);
-    } catch (e) {
-      client.disconnect();
-      return;
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleDisconnect(client: Socket) {}
 
   @SubscribeMessage('test')
-  handleMessage(client: Socket, payload: string) {
+  @WebSocketAuth()
+  handleMessage(
+    @ConnectedSocket() client: Socket,
+    @WebSocketUser('id') userId: string,
+    @MessageBody() payload: string,
+  ) {
+    this.logger.log(userId);
     this.logger.log(payload);
   }
 }
